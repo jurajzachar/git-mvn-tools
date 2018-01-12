@@ -10,24 +10,16 @@ import org.eclipse.jgit.lib.Ref
 import scala.util.Success
 import com.blueskiron.gitmvn.tools.ReleaseHelper.Options
 import com.blueskiron.gitmvn.tools.MavenHelper.MavenArtifact
+import org.scalatest.BeforeAndAfterAll
 
-class ReleaseHelperTestSuite extends FlatSpec with Matchers  {
+class ReleaseHelperTestSuite extends FlatSpec with Matchers with BeforeAndAfterAll {
   
   val logger = LoggerFactory.getLogger(this.getClass)
   
-  "ReleaseHelper" should "display correct branch name" in {
-    {
-      val expectedMajorBranchName = "v1.x"
-      val branchName = DevBranchName(1, None, None)
-      logger.debug(s"generated major branch name: $branchName")
-      branchName.toString shouldBe expectedMajorBranchName
-    }
-    {
-      val expectedMajorBranchName = "v1.0.x"
-      val branchName = DevBranchName(1, Some(0), None)
-      logger.debug(s"generated major branch name: $branchName")
-      branchName.toString shouldBe expectedMajorBranchName
-    }
+  import GitFixture._
+  
+  override def beforeAll(){
+    initGitRepoIfNotExists()
   }
   
   "BugfixRelease" should "yield correct next version and dev branch name" in {
@@ -89,8 +81,24 @@ class ReleaseHelperTestSuite extends FlatSpec with Matchers  {
       nextDevBranch.toString() shouldBe expectedMajorBranchName
   }
   
+  "ReleaseHelper" should "display correct branch name" in {
+    {
+      val expectedMajorBranchName = "v1.x"
+      val branchName = DevBranchName(1, None, None)
+      logger.debug(s"generated major branch name: $branchName")
+      branchName.toString shouldBe expectedMajorBranchName
+    }
+    {
+      val expectedMajorBranchName = "v1.0.x"
+      val branchName = DevBranchName(1, Some(0), None)
+      logger.debug(s"generated major branch name: $branchName")
+      branchName.toString shouldBe expectedMajorBranchName
+    }
+  }
+    
   "RealeaseHelper" should "generate successful report" in {
-    val opts = Options("src/test/resources/sample-repo.git", "minor", true, true)
+    import GitFixture._
+    val opts = Options(repoDir.getAbsolutePath, "minor", true, true)
     ReleaseHelper.makeRelease(opts, report => {
       report.display(logger)
       //user input required to confirm, [yes]/no

@@ -8,21 +8,27 @@ import com.blueskiron.gitmvn.tools.JGitHelper
 import org.eclipse.jgit.lib.Repository
 import scala.util.Success
 import scala.util.Failure
+import org.scalatest.BeforeAndAfterAll
+import org.eclipse.jgit.api.Git
 
 /**
  * @author juraj
  *
  */
-class JGitHelperTestSuite extends FlatSpec with Matchers {
+class JGitHelperTestSuite extends FlatSpec with Matchers with BeforeAndAfterAll {
   val logger = LoggerFactory.getLogger(this.getClass)
-  val repoDir = Paths.get("src", "test", "resources", "sample-repo.git")
-    .toAbsolutePath().toString()
-
+  
+  import GitFixture._
+  
+  override def beforeAll(){
+    initGitRepoIfNotExists()
+  }
+  
   "JGitHelper" should " create a new branch with the given name" in {
     logger.info(s"Assuming git repository is in $repoDir")
-    val repo = JGitHelper.openJGitRepository(repoDir);
+    val repo = JGitHelper.openJGitRepository(repoDir.getAbsolutePath);
     //test branch creation
-    val branchName = s"v0.1.x-${System.currentTimeMillis()}"
+    val branchName = s"v1.1.x"
     JGitHelper.getOrCreateBranch(branchName, List(), repo) match {
       case Left(cmd) => {
         val ref = cmd.call()
@@ -34,7 +40,7 @@ class JGitHelperTestSuite extends FlatSpec with Matchers {
 
   "JGitHelper" should " be able to list all local branches" in {
     logger.info(s"Assuming git repository is in $repoDir")
-    val repo = JGitHelper.openJGitRepository(repoDir);
+    val repo = JGitHelper.openJGitRepository(repoDir.getAbsolutePath);
     logger.info("Querying local and remote branches ...")
     val maybeBranches = JGitHelper.listLocalBranches(repo)
     maybeBranches match {
@@ -52,7 +58,7 @@ class JGitHelperTestSuite extends FlatSpec with Matchers {
 
   "JGitHelper" should " be able to list all remote branches" in {
     logger.info(s"Assuming git repository is in $repoDir")
-    val repo = JGitHelper.openJGitRepository(repoDir);
+    val repo = JGitHelper.openJGitRepository(repoDir.getAbsolutePath);
     logger.info("Querying local and remote branches ...")
     val maybeBranches = JGitHelper.listLocalBranches(repo)
     maybeBranches match {
